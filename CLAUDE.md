@@ -10,6 +10,7 @@ darf als Referenz dienen.
 - Antworten auf Deutsch (natürliches Deutsch, Anglizismen meiden).
   Code, Bezeichner und Commit-Messages auf Englisch, Kommentare im Stil von EOBRS.
 - Committen und pushen nur auf Anweisung. Commits enden mit `Co-Authored-By: Claude …`.
+  Repo: `github.com/SilentBill77/Lands-of-Lore-RS` (privat, Zweig `main`).
 - Nie einchecken: Originaldaten und alles daraus (`extract/`), große Assets (Modelle,
   Texturen, Musik), Spielstände, Einstellungsdateien, `ref/`.
 - Keine Downloads ohne Erlaubnis. Cargo mit `--offline` (die Registry liegt lokal).
