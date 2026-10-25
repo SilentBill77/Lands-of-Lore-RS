@@ -69,6 +69,16 @@ impl Args<'_> {
     pub fn string(&self, i: usize) -> &str {
         self.script.text(self.pos(i) as u16 as usize)
     }
+
+    /// The argument `i` as the bytes of a string of the script's `TEXT`.
+    pub fn bytes(&self, i: usize) -> &[u8] {
+        self.script.text_bytes(self.pos(i) as u16 as usize)
+    }
+
+    /// How many values are on the stack above the arguments' top.
+    pub fn sp(&self) -> usize {
+        self.state.sp
+    }
 }
 
 /// The game, as the script calls it.
@@ -125,6 +135,20 @@ impl Script {
         };
         let end = rest.iter().position(|&b| b == 0).unwrap_or(rest.len());
         std::str::from_utf8(&rest[..end]).unwrap_or("")
+    }
+
+    /// The string of `TEXT` with this index as its bytes (the game's texts are in the DOS
+    /// code page).
+    pub fn text_bytes(&self, index: usize) -> &[u8] {
+        let at = self
+            .text
+            .get(2 * index..2 * index + 2)
+            .map(|b| u16::from_be_bytes([b[0], b[1]]) as usize);
+        let Some(rest) = at.and_then(|at| self.text.get(at..)) else {
+            return &[];
+        };
+        let end = rest.iter().position(|&b| b == 0).unwrap_or(rest.len());
+        &rest[..end]
     }
 
     /// Every string of `TEXT`.
@@ -234,7 +258,8 @@ impl Script {
             2 => match parameter {
                 0 => push(state, state.ret)?,
                 1 => {
-                    let back = state.ip? as i16;
+                    // The word after the call's jump (ScummVM: `ip - data + 1`).
+                    let back = (state.ip? + 1) as i16;
                     push(state, back)?;
                     push(state, state.bp as i16)?;
                     state.bp = state.sp as isize + 2;
@@ -275,8 +300,14 @@ impl Script {
                 state.stack[at(state.bp + p - 1)?] = value;
             }
             // addSP, subSP
-            12 => state.sp = at(state.sp as isize + p)?,
-            13 => state.sp = at(state.sp as isize - p)?,
+            // (`sp` may end one past the stack's last entry: nothing is read there)
+            12 | 13 => {
+                let sp = state.sp as isize + if opcode == 12 { p } else { -p };
+                if !(0..=STACK_SIZE as isize).contains(&sp) {
+                    return None;
+                }
+                state.sp = sp as usize;
+            }
             // sysCall
             14 => {
                 let args = Args {
@@ -317,12 +348,21 @@ impl Script {
                     8 => a.wrapping_add(b),
                     9 => b.wrapping_sub(a),
                     10 => a.wrapping_mul(b),
-                    11 => b.checked_div(a)?,
-                    12 => b.wrapping_shr(a as u32),
-                    13 => b.wrapping_shl(a as u32),
+                    // C promotes to int: the results are computed in 32 bits and cut to 16.
+                    11 if a == 0 => return None,
+                    11 => (b as i32 / a as i32) as i16,
+                    12 => ((b as i32) >> (a as u16).min(31)) as i16,
+                    13 => {
+                        if (0..32).contains(&a) {
+                            ((b as i32) << a) as i16
+                        } else {
+                            0
+                        }
+                    }
                     14 => a & b,
                     15 => a | b,
-                    16 => b.checked_rem(a)?,
+                    16 if a == 0 => return None,
+                    16 => (b as i32 % a as i32) as i16,
                     17 => a ^ b,
                     _ => return None,
                 };

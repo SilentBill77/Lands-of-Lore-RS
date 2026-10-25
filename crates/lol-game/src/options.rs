@@ -1,39 +1,36 @@
-//! The command line: where to begin and how to run (for trying things out and test runs).
+//! The command line and the settings kept between runs.
+
+use std::path::PathBuf;
 
 use bevy::prelude::Resource;
 use lol_data::paths::Language;
+use lol_engine::lol::main_loop::Settings;
 
 #[derive(Resource, Debug, Clone)]
 pub struct Options {
     pub language: Language,
-    pub level: Option<usize>,
-    pub block: Option<usize>,
-    pub direction: Option<usize>,
-    /// Moves right after the start (`V` ahead, `Z` back, `A`/`D` aside, `L`/`R` turn).
-    pub moves: String,
-    /// Writes the screen as it would show to this file, then ends (after `frames` frames).
-    pub screenshot: Option<String>,
-    pub frames: u32,
+    /// A saved game to start with (its slot).
+    pub load: Option<i32>,
     pub window_size: (u32, u32),
+    /// The window as large as the screen.
+    pub fullscreen: bool,
+    /// The installed copy's folder (or its `GAME.DAT`), when it is not found by itself.
+    pub data: Option<PathBuf>,
 }
 
 impl Default for Options {
     fn default() -> Self {
         Self {
             language: Language::German,
-            level: None,
-            block: None,
-            direction: None,
-            moves: String::new(),
-            screenshot: None,
-            frames: 3,
+            load: None,
             window_size: (1280, 960),
+            fullscreen: false,
+            data: None,
         }
     }
 }
 
-pub const USAGE: &str = "Aufruf: lol-game [--sprache de|en|fr] [--ebene N] [--pos BLOCK] \
-[--richtung N|O|S|W] [--wege VZADLR…] [--screenshot DATEI] [--frames N] [--groesse BxH]";
+pub const USAGE: &str = "Aufruf: lol-game [--daten ORDNER] [--sprache de|en|fr] [--laden NR] [--groesse BxH] [--vollbild]";
 
 impl Options {
     pub fn from_args(args: impl Iterator<Item = String>) -> Result<Self, String> {
@@ -50,20 +47,7 @@ impl Options {
                     options.language =
                         Language::parse(&v).ok_or_else(|| format!("Unbekannte Sprache: {v}"))?;
                 }
-                "--ebene" => options.level = Some(number(&value()?, 1, 29)?),
-                "--pos" => options.block = Some(number(&value()?, 0, 1023)?),
-                "--richtung" => {
-                    let v = value()?.to_ascii_uppercase();
-                    options.direction = Some(
-                        ["N", "O", "S", "W"]
-                            .iter()
-                            .position(|d| *d == v)
-                            .ok_or_else(|| format!("Richtung N, O, S oder W, nicht {v}"))?,
-                    );
-                }
-                "--wege" => options.moves = value()?.to_ascii_uppercase(),
-                "--screenshot" => options.screenshot = Some(value()?),
-                "--frames" => options.frames = number(&value()?, 1, 100_000)? as u32,
+                "--laden" => options.load = Some(number(&value()?, 0, 989)? as i32),
                 "--groesse" => {
                     let v = value()?;
                     let (w, h) = v
@@ -74,6 +58,8 @@ impl Options {
                         number(h, 200, 10_000)? as u32,
                     );
                 }
+                "--vollbild" => options.fullscreen = true,
+                "--daten" => options.data = Some(PathBuf::from(value()?)),
                 "--hilfe" | "-h" | "--help" => return Err(USAGE.to_string()),
                 other => return Err(format!("Unbekannte Option: {other}\n{USAGE}")),
             }
@@ -89,6 +75,60 @@ fn number(text: &str, min: usize, max: usize) -> Result<usize, String> {
         .ok_or_else(|| format!("Zahl von {min} bis {max} erwartet, nicht {text}"))
 }
 
+/// Where the program keeps its files: `%APPDATA%\Lands-of-Lore-RS` (saved games, settings).
+pub fn data_dir() -> Option<PathBuf> {
+    let base = std::env::var_os("APPDATA").or_else(|| std::env::var_os("HOME"))?;
+    Some(PathBuf::from(base).join("Lands-of-Lore-RS"))
+}
+
+/// The game's settings as `key=value` lines.
+pub fn read_settings(path: &PathBuf) -> Option<Settings> {
+    let text = std::fs::read_to_string(path).ok()?;
+    let mut s = Settings {
+        monster_difficulty: 1,
+        smooth_scrolling: true,
+        floating_cursors: false,
+        config_voice: 2,
+        music_volume: 192,
+        sfx_volume: 192,
+        speech_volume: 255,
+    };
+    for line in text.lines() {
+        let Some((k, v)) = line.split_once('=') else {
+            continue;
+        };
+        let n = v.trim().parse::<i32>().unwrap_or(0);
+        match k.trim() {
+            "monster_difficulty" => s.monster_difficulty = n,
+            "smooth_scrolling" => s.smooth_scrolling = n != 0,
+            "floating_cursors" => s.floating_cursors = n != 0,
+            "voice" => s.config_voice = n,
+            "music_volume" => s.music_volume = n.clamp(0, 255) as u8,
+            "sfx_volume" => s.sfx_volume = n.clamp(0, 255) as u8,
+            "speech_volume" => s.speech_volume = n.clamp(0, 255) as u8,
+            _ => {}
+        }
+    }
+    Some(s)
+}
+
+pub fn write_settings(path: &PathBuf, s: &Settings) {
+    let text = format!(
+        "monster_difficulty={}\nsmooth_scrolling={}\nfloating_cursors={}\nvoice={}\nmusic_volume={}\nsfx_volume={}\nspeech_volume={}\n",
+        s.monster_difficulty,
+        s.smooth_scrolling as i32,
+        s.floating_cursors as i32,
+        s.config_voice,
+        s.music_volume,
+        s.sfx_volume,
+        s.speech_volume
+    );
+    if let Some(dir) = path.parent() {
+        let _ = std::fs::create_dir_all(dir);
+    }
+    let _ = std::fs::write(path, text);
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -96,20 +136,20 @@ mod tests {
     #[test]
     fn reads_the_command_line() {
         let args = [
-            "--ebene",
+            "--sprache",
+            "en",
+            "--laden",
             "3",
-            "--pos",
-            "300",
-            "--richtung",
-            "w",
-            "--wege",
-            "vvl",
+            "--groesse",
+            "800x600",
+            "--daten",
+            r"E:\LoL",
         ];
         let options = Options::from_args(args.iter().map(|s| s.to_string())).unwrap();
-        assert_eq!(options.level, Some(3));
-        assert_eq!(options.block, Some(300));
-        assert_eq!(options.direction, Some(3));
-        assert_eq!(options.moves, "VVL");
-        assert!(Options::from_args(["--ebene", "30"].iter().map(|s| s.to_string())).is_err());
+        assert_eq!(options.language, Language::English);
+        assert_eq!(options.load, Some(3));
+        assert_eq!(options.window_size, (800, 600));
+        assert_eq!(options.data, Some(PathBuf::from(r"E:\LoL")));
+        assert!(Options::from_args(["--laden", "x"].iter().map(|s| s.to_string())).is_err());
     }
 }

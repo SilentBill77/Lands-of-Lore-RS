@@ -19,6 +19,9 @@ fn the_first_level_is_gladstone_keep() {
     assert_eq!(game.level.graphics, "KEEP");
     assert_eq!((game.level.index, game.block, game.direction), START);
     assert!(game.level.doors.is_some());
+    assert!(game.level.door_shapes[0].is_some());
+    // The keep's decorations (windows, pictures, archways) were taken over for its walls.
+    assert!(game.level.decorations.list.len() > 10);
     assert!(game.level.script.is_some());
     let screen = game.render();
     assert_eq!(screen.pixels.len(), 320 * 200);

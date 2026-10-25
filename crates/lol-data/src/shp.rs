@@ -16,8 +16,27 @@ use crate::error::{Error, Result};
 pub struct Shape {
     pub width: usize,
     pub height: usize,
-    /// Colour indices, 0 transparent.
+    /// The pixels as stored, 0 transparent: colour indices, or places in `table`.
     pub pixels: Vec<u8>,
+    /// The figure's own table of colours (the original draws through it unless given another).
+    pub table: Option<Vec<u8>>,
+}
+
+impl Shape {
+    /// The pixels as colour indices (through the figure's own table), 0 transparent.
+    pub fn colored(&self) -> Vec<u8> {
+        match &self.table {
+            Some(table) => self
+                .pixels
+                .iter()
+                .map(|&p| match p {
+                    0 => 0,
+                    p => table.get(p as usize).copied().unwrap_or(p),
+                })
+                .collect(),
+            None => self.pixels.clone(),
+        }
+    }
 }
 
 /// The figures of a file (`None` where a place is empty). Most files are packed as a whole
@@ -110,10 +129,9 @@ pub fn parse(file: &str, bytes: &[u8]) -> Result<Shape> {
                 x += byte(src)? as usize;
                 src += 1;
             } else {
-                row[x] = match table {
-                    Some(table) => table.get(c as usize).copied().unwrap_or(c),
-                    None => c,
-                };
+                if let Some(pixel) = row.get_mut(x) {
+                    *pixel = c;
+                }
                 x += 1;
             }
         }
@@ -122,6 +140,7 @@ pub fn parse(file: &str, bytes: &[u8]) -> Result<Shape> {
         width,
         height,
         pixels,
+        table: table.map(<[u8]>::to_vec),
     })
 }
 
@@ -162,9 +181,8 @@ mod tests {
         table[6] = 60;
         table[7] = 70;
         let shapes = parse_file("TEST.SHP", &file(1, &table)).unwrap();
-        assert_eq!(
-            shapes[0].as_ref().unwrap().pixels,
-            vec![50, 0, 60, 0, 0, 70]
-        );
+        let shape = shapes[0].as_ref().unwrap();
+        assert_eq!(shape.pixels, vec![5, 0, 6, 0, 0, 7]);
+        assert_eq!(shape.colored(), vec![50, 0, 60, 0, 0, 70]);
     }
 }

@@ -111,6 +111,7 @@ impl Game {
             pixels[at..at + view::WIDTH]
                 .copy_from_slice(&picture[row * view::WIDTH..(row + 1) * view::WIDTH]);
         }
+        crate::scene::draw_scene_shapes(&mut pixels, &self.level, self.block, self.direction);
         Screen {
             pixels,
             palette: self.level.palette.clone(),

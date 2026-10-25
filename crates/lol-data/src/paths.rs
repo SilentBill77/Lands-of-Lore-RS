@@ -1,9 +1,9 @@
 //! Locating an installed copy of Lands of Lore: the CD version, either as the image GOG ships
 //! (`GAME.DAT`, ISO 9660) or as the CD's files in a folder (one holding `DATA\GENERAL.PAK`).
 //!
-//! In this order: the environment variable [`LOL_ENV`] (a folder or the image itself); next to
-//! the program and in the working folder; GOG and other usual places on every drive (folders
-//! whose name mentions the game).
+//! In this order: the environment variable [`LOL_ENV`] (a folder or the image itself); where
+//! GOG's installer noted the game in the registry; next to the program and in the working
+//! folder; GOG and other usual places on every drive (folders whose name mentions the game).
 
 use std::env;
 use std::path::{Path, PathBuf};
@@ -122,7 +122,7 @@ pub fn find() -> Option<Installation> {
 
 /// Places to look, most likely first.
 fn candidates() -> Vec<PathBuf> {
-    let mut dirs = Vec::new();
+    let mut dirs = gog_registry();
     if let Ok(exe) = env::current_exe()
         && let Some(folder) = exe.parent()
     {
@@ -142,6 +142,44 @@ fn candidates() -> Vec<PathBuf> {
             "Spiele",
         ] {
             dirs.extend(lore_folders(&drive.join(parent)));
+        }
+    }
+    dirs
+}
+
+/// GOG's product number of Lands of Lore: The Throne of Chaos.
+const GOG_ID: &str = "1207662513";
+
+/// Where GOG's installer put the game (`HKLM\SOFTWARE\…\GOG.com\Games\<id>`, value `PATH`),
+/// read with Windows' own `reg` tool.
+fn gog_registry() -> Vec<PathBuf> {
+    if !cfg!(windows) {
+        return Vec::new();
+    }
+    let mut dirs = Vec::new();
+    for key in [
+        r"HKLM\SOFTWARE\WOW6432Node\GOG.com\Games\",
+        r"HKLM\SOFTWARE\GOG.com\Games\",
+    ] {
+        let mut reg = std::process::Command::new("reg");
+        reg.args(["query", &format!("{key}{GOG_ID}"), "/v", "PATH"]);
+        #[cfg(windows)]
+        {
+            use std::os::windows::process::CommandExt;
+            // No console window flashing up.
+            const CREATE_NO_WINDOW: u32 = 0x0800_0000;
+            reg.creation_flags(CREATE_NO_WINDOW);
+        }
+        let Ok(out) = reg.output() else {
+            continue;
+        };
+        let text = String::from_utf8_lossy(&out.stdout);
+        if let Some(path) = text
+            .lines()
+            .find_map(|l| l.trim().strip_prefix("PATH"))
+            .and_then(|rest| rest.trim().strip_prefix("REG_SZ"))
+        {
+            dirs.push(PathBuf::from(path.trim()));
         }
     }
     dirs

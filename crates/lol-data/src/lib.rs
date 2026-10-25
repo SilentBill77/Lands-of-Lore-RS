@@ -4,6 +4,7 @@
 pub mod assets;
 pub mod compression;
 pub mod cps;
+pub mod decor;
 pub mod emc;
 pub mod error;
 pub mod iso;

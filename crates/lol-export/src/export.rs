@@ -163,7 +163,7 @@ fn figures(name: &str, data: &[u8], palette: &Palette, folder: &Path) -> Result<
         let Some(shape) = shape.as_ref().filter(|s| s.width > 0 && s.height > 0) else {
             continue;
         };
-        let rgba = palette.rgba(&shape.pixels, true);
+        let rgba = palette.rgba(&shape.colored(), true);
         save(
             &own.join(format!("{i:02}.png")),
             shape.width,

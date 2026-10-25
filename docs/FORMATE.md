@@ -134,8 +134,25 @@ eine Blocknummer im `VCN`; Bit 14 spiegelt, Bit 15 legt den Block über Decke un
 durchsichtig). Das Sichtfenster (176×120 bei x 112) setzt sich wie in Eye of the Beholder aus
 den 18 sichtbaren Blöcken zusammen, Decke und Boden auf jedem zweiten Block gespiegelt.
 
+## DAT: Verzierungen eines Wandsatzes ✔ (`decor.rs`, nach `loadLevelShpDat`)
+
+Anzahl (u16), dann je 72 Byte: für zehn Ansichtsplätze die Figur in der zugehörigen `SHP`
+(u16, `FFFF` keine), ob der Platz über die Tabellen des Programms skaliert wird (u8, Bit 0), x
+und y (i16); dann die mitgezeichnete Verzierung (u8) und Flags (u8: 1 gespiegelt daneben, 2/4
+gespiegelt, 8 nur geradeaus). Die Wandnummern zeigen über `WLL` auf diese Verzierungen; das Spiel
+übernimmt die gebrauchten in eine eigene Liste der Ebene (`assignLevelDecorationShapes`), auch
+aus weiteren Dateipaaren, die das Init-Skript lädt.
+
+## Figuren im Sichtfenster ✔ (Teil, `lol-engine/src/scene.rs`, nach `drawSceneShapes`)
+
+Block für Block, der fernste zuerst: der sichtbare Ausschnitt (`setLevelShapesDim`), die
+Verzierungen (`drawDecorations`), dann die Tür (Wände 3–22: fünf Stufen des Öffnens, die Tür um
+20 Punkte je Stufe angehoben). Skaliert in 256steln und abgedunkelt über acht Tabellen je Ebene
+(`generateOverlay`: Farben 1–127 zur „Sonderfarbe“ des Init-Skripts hin). Noch fehlen
+Gegenstände, Monster, Flecken und Eis auf dem Boden.
+
 ## Noch offen
 
-Die meisten Spielfunktionen der Skripte, `TIM` als Ganzes, `DAT` der Wandsätze und die
-Verzierungen, Türen, Gegenstände und Monster im Sichtfenster (`drawSceneShapes`), Texte
+Die meisten Spielfunktionen der Skripte, `TIM` als Ganzes, Gegenstände und Monster im
+Sichtfenster, Texte
 `LEVELnn.GER` und `LANDS.EXE`-Texte, `FNT`, `XMI`/`C55` (General MIDI / MT-32), `FILEDATA.FDT`.

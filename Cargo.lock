@@ -3630,7 +3630,9 @@ dependencies = [
 name = "lol-engine"
 version = "0.1.0"
 dependencies = [
+ "image",
  "lol-data",
+ "lol-sound",
 ]
 
 [[package]]
