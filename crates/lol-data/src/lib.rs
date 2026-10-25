@@ -4,13 +4,17 @@
 pub mod assets;
 pub mod compression;
 pub mod cps;
+pub mod emc;
 pub mod error;
 pub mod iso;
+pub mod level;
 pub mod pak;
 pub mod palette;
 pub mod paths;
 pub mod shp;
+pub mod tables;
 pub mod vcn;
+pub mod view;
 pub mod voc;
 pub mod wsa;
 

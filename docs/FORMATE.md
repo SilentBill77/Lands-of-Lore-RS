@@ -88,8 +88,54 @@ Westwoods AdLib-Treiber, Version 4: vor den Klangdaten 250 Liednummern (u16, `FF
 dann 500 Programme und die Instrumente. Musik: `LORE01A.ADL` … `LORE08B.ADL` in `MUSIC.PAK`,
 `LOREINTR.ADL` (Vorspann), `LOREFINL.ADL` (Abspann); Geräusche `LORESFX.ADL`.
 
+## Tabellen aus dem Programm ✔ (`tables.rs`)
+
+Was `LANDS.EXE` an Tabellen mitbringt (Sichtfenster, Wandsätze der Ebenen, Monster, Zauber,
+Figuren zur Wahl, Knöpfe, die Namen der Spielfunktionen der Skripte), liest
+`python -I tools/tables_from_scummvm.py ref/scummvm` aus ScummVMs
+`devtools/create_kyradat/resources/lol_dos_cd*.h` und `engines/kyra/script/script_lol.cpp`.
+
+## EMC2: Skripte ✔ (`emc.rs`, nach `EMCInterpreter`)
+
+IFF `FORM` vom Typ `EMC2` mit `TEXT` (Versätze u16 BE, dann Texte), `ORDR` (je Funktion ihr
+Beginn in `DATA`, u16 BE, `FFFF` keine) und `DATA` (Code, u16 BE). Ein Wort: Bit 15 Sprung;
+sonst Befehl in Bit 8–12, Parameter im unteren Byte (Bit 14, mit Vorzeichen), im nächsten Wort
+(Bit 13) oder keiner. 19 Befehle (Sprung, Stapel, Register, Rechnen, Aufruf des Spiels). Die
+Spielfunktionen lesen ihre Argumente oben vom Stapel; ein Text-Argument ist ein Index in `TEXT`.
+Die Funktionen von `LEVELn.INF` tragen die Nummer des Blocks, für den sie gelten; das Wort davor
+sagt, bei welchen Ereignissen sie laufen (`runLevelScriptCustom`). `LEVELn.INI` richtet die Ebene
+ein (Funktion 0, beim ersten Besuch auch 1): `loadLevelGraphics("KEEP", …)`,
+`loadBlockProperties("LEVEL1.CMZ")`, `loadDoorShapes`, `loadMonsterShapes`, `loadLevelShapes`.
+
+## TIM: Szenenskripte (teilweise)
+
+IFF `FORM` mit `TEXT` und `AVTL` (u16 LE): die ersten zehn Wörter sind die Anfänge von zehn
+Funktionen; ein Befehl ist Länge, Wartezeit, Befehlsnummer, Parameter. Befehl 25 ruft eine
+Spielfunktion (`TIM_INGAME_FUNCTIONS`). Die Audienz beim König (`KING1.TIM`) setzt die Gruppe auf
+Block 272 mit Blick nach Osten: dort beginnt ein neues Spiel.
+
+## CMZ: Karte ✔ (`level.rs`)
+
+Hinter einem CPS-Kopf. Sechs Byte Kopf (Byte 4–5: Größe eines Eintrags), dann 32×32 Einträge;
+deren erste vier Byte sind die Wandnummern nach Norden, Osten, Süden, Westen.
+
+## WLL: Bedeutung der Wandnummern ✔ (`level.rs`)
+
+Index in die Listen der Verzierungsdateien des Programms (u16), dann je 12 Byte: Wandnummer,
+Art im Wandsatz (`VMP`, 0 keine), Verzierung (i16), besondere Art, Flags (Bit 0 versperrt den
+Weg, Bit 3 durchsichtig), Zeichen auf der Karte, je zwei Byte. `loadDoorShapes` setzt die
+Flags der Türen 3–22.
+
+## VMP: Zusammensetzung der Ansicht ✔ (`level.rs`, `view.rs`)
+
+Hinter einem CPS-Kopf: Anzahl (u16), dann Einträge (u16): 330 für Decke und Boden (22×15), dann
+431 je Wandart, in neun Stücken (Versätze 102, 97, 129, 117, 81, 159, 45, 239, 0). Ein Eintrag ist
+eine Blocknummer im `VCN`; Bit 14 spiegelt, Bit 15 legt den Block über Decke und Boden (Farbe 0
+durchsichtig). Das Sichtfenster (176×120 bei x 112) setzt sich wie in Eye of the Beholder aus
+den 18 sichtbaren Blöcken zusammen, Decke und Boden auf jedem zweiten Block gespiegelt.
+
 ## Noch offen
 
-`CMZ` (Karten), `VMP` (Zusammensetzung der Ansicht), `WLL`, `INF`/`INI` (EMC2-Skripte), `TIM`
-(Szenenskripte), `DAT` der Wandsätze (Verzierungen), Texte `LEVELnn.GER`, `FNT`, `XMI`/`C55`
-(General MIDI / MT-32), `FILEDATA.FDT`, die Tabellen in `LANDS.EXE`.
+Die meisten Spielfunktionen der Skripte, `TIM` als Ganzes, `DAT` der Wandsätze und die
+Verzierungen, Türen, Gegenstände und Monster im Sichtfenster (`drawSceneShapes`), Texte
+`LEVELnn.GER` und `LANDS.EXE`-Texte, `FNT`, `XMI`/`C55` (General MIDI / MT-32), `FILEDATA.FDT`.

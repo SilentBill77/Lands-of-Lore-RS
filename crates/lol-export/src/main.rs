@@ -3,9 +3,11 @@
 //!
 //! - `lol-export liste`: the copy found, its languages and archives.
 //! - `lol-export info [SPRACHE]`: every file of every archive with its kind.
+//! - `lol-export skript DATEI`: what each function of a script asks of the game.
 //! - `lol-export bilder [ZIEL]`: pictures, figures, animations and palettes.
 //! - `lol-export klaenge [ZIEL]`: the sounds and the speech (`VOC`).
 //! - `lol-export musik [ZIEL]`: the music and sounds of the AdLib card (`ADL`).
+//! - `lol-export ansichten [ZIEL]`: views of every level as the original draws them.
 //! - `lol-export alles [ZIEL]`: all of it, and `uebersicht.html`.
 //!
 //! `ZIEL` defaults to `extract`. Files shared by all languages go to `ZIEL/allgemein`, those
@@ -20,6 +22,7 @@ mod export;
 mod music;
 mod overview;
 mod sounds;
+mod views;
 
 fn main() {
     let args: Vec<String> = std::env::args().skip(1).collect();
@@ -39,18 +42,23 @@ fn main() {
                 .and_then(|a| Language::parse(a))
                 .unwrap_or(Language::German),
         ),
+        Some("skript") => script(&copy, args.get(1).map_or("LEVEL1.INI", String::as_str)),
         Some("bilder") => export::all(&copy, &target()),
         Some("klaenge") => sounds::all(&copy, &target()),
+        Some("ansichten") => views::all(&copy, &target()),
         Some("musik") => music::all(&copy, &target()),
         Some("alles") => {
             let target = target();
             export::all(&copy, &target)
                 .and_then(|_| sounds::all(&copy, &target))
                 .and_then(|_| music::all(&copy, &target))
+                .and_then(|_| views::all(&copy, &target))
                 .and_then(|_| overview::write(&target))
         }
         Some(other) => {
-            eprintln!("Unbekannter Befehl: {other} (liste, info, bilder, klaenge, musik, alles)");
+            eprintln!(
+                "Unbekannter Befehl: {other} (liste, info, skript, bilder, klaenge, musik, ansichten, alles)"
+            );
             std::process::exit(2);
         }
     };
@@ -82,6 +90,20 @@ fn list(copy: &Installation) -> lol_data::Result<()> {
     println!("  Gemeinsam: {}", shared.join(" "));
     let loose: Vec<&str> = store.names().filter(|n| !n.ends_with(".PAK")).collect();
     println!("  Lose: {}", loose.join(" "));
+    Ok(())
+}
+
+/// Runs every function of a script once, printing the game's functions it calls.
+fn script(copy: &Installation, name: &str) -> lol_data::Result<()> {
+    let store = AssetStore::open(copy, Language::German)?;
+    let script = lol_data::emc::Script::parse(name, &store.read(name)?)?;
+    println!("{name}: {}", script.texts().join(" | "));
+    for function in (0..2048).filter(|&f| script.has_function(f)) {
+        println!("Funktion {function}:");
+        for call in lol_engine::trace::trace(&script, function) {
+            println!("  {call}");
+        }
+    }
     Ok(())
 }
 

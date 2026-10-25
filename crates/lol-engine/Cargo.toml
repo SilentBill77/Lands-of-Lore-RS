@@ -1,0 +1,13 @@
+[package]
+name = "lol-engine"
+description = "The game's rules and the original look of Lands of Lore, drawn into a 320x200 screen"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[dependencies]
+lol-data.workspace = true
+
+[lints]
+workspace = true

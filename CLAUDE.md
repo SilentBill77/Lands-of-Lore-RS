@@ -28,7 +28,9 @@ Export: `cargo run --offline --release -p lol-export -- alles` (nach `extract/`)
 Referenz: `ref/scummvm` (Kopie aus EOBRS: `engines/kyra`, `devtools/create_kyradat`, nicht
 eingecheckt). Lands of Lore steht dort in `engine/*_lol.cpp`, `graphics/screen_lol.cpp`,
 `gui/gui_lol.cpp`, `script/script_lol.cpp`, `sequence/sequences_lol.cpp`,
-`sound/sound_lol.cpp`, `resource/staticres_lol.cpp`.
+`sound/sound_lol.cpp`, `resource/staticres_lol.cpp`. Tabellen aus dem Programm und die Namen der
+Skriptfunktionen: `python -I tools/tables_from_scummvm.py ref/scummvm` (schreibt
+`crates/lol-data/src/tables.rs`).
 
 ## Prüfen
 

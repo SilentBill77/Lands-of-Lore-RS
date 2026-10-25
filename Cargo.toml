@@ -1,6 +1,6 @@
 [workspace]
 resolver = "3"
-members = ["crates/lol-data", "crates/lol-export", "crates/lol-sound"]
+members = ["crates/lol-data", "crates/lol-engine", "crates/lol-export", "crates/lol-game", "crates/lol-sound"]
 
 [workspace.package]
 version = "0.1.0"
@@ -8,12 +8,14 @@ edition = "2024"
 license = "GPL-3.0-or-later"
 publish = false
 
+# Bevy systems take many and complex parameters by design.
 [workspace.lints.clippy]
 too_many_arguments = "allow"
 type_complexity = "allow"
 
 [workspace.dependencies]
 lol-data = { path = "crates/lol-data" }
+lol-engine = { path = "crates/lol-engine" }
 lol-sound = { path = "crates/lol-sound" }
 thiserror = "2"
 # Same version EOBRS uses (in the local registry); writes the PNG files.
@@ -24,3 +26,10 @@ opt-level = 3
 
 [profile.dev]
 opt-level = 1
+
+# The version to play (`cargo build --profile spiel`): optimised across all crates, Bevy
+# included; building it takes minutes, so `release` stays for development.
+[profile.spiel]
+inherits = "release"
+lto = "fat"
+codegen-units = 1

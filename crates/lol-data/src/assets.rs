@@ -1,8 +1,10 @@
 //! One way to the game's files for one language. The CD keeps them in `DATA` (shared by all
 //! languages: levels, scenes, wall sets, speech) and `DATA\GER`, `DATA\ENG`, `DATA\FRE` (the
 //! program, texts, intro and finale); a language's file goes before a shared one of the same
-//! name (`GENERAL.PAK`). Nearly all files lie in PAK archives, which are read once when the
-//! store opens; the speech (`*.TLK`, some 250 MB) only when asked for.
+//! name. Nearly all files lie in PAK archives, which are read once when the store opens; the
+//! speech (`*.TLK`, some 250 MB) only when asked for. Archives of the same name in both
+//! folders hold different files (`STARTUP.PAK`, `GENERAL.PAK`): both are read, the
+//! language's first.
 //!
 //! Names are matched without regard to case. Several archives hold files of the same name
 //! (each level its own palette); [`AssetStore::read`] gives the first, [`Archive::read`] the
@@ -83,10 +85,10 @@ impl AssetStore {
                 installation.dir.display()
             )));
         }
+        let file_name = |path: &str| path.rsplit('/').next().unwrap_or(path).to_string();
         let mut loose = BTreeMap::new();
-        for path in shared.into_iter().chain(own.iter().cloned()) {
-            let name = path.rsplit('/').next().unwrap_or(&path).to_string();
-            loose.insert(name, path);
+        for path in shared.iter().chain(own.iter()) {
+            loose.insert(file_name(path), path.clone());
         }
         let mut store = Self {
             installation: installation.clone(),
@@ -95,14 +97,13 @@ impl AssetStore {
             loose,
             archives: Vec::new(),
         };
+        // Both of a name: the language's `STARTUP.PAK` and the shared one hold different files.
         let mut archives = Vec::new();
-        for (name, path) in &store.loose {
-            if !name.ends_with(".PAK") {
-                continue;
+        for (paths, language) in [(&own, Some(language)), (&shared, None)] {
+            for path in paths.iter().filter(|p| p.ends_with(".PAK")) {
+                let name = file_name(path);
+                archives.push(Archive::parse(&name, language, store.read_path(path)?)?);
             }
-            let own = own.contains(path);
-            let archive = Archive::parse(name, own.then_some(language), store.read_path(path)?)?;
-            archives.push(archive);
         }
         archives.sort_by_key(|a| (a.language.is_none(), a.name.clone()));
         store.archives = archives;
@@ -128,10 +129,18 @@ impl AssetStore {
         &self.archives
     }
 
+    /// The archive of that name, the language's before a shared one.
     pub fn archive(&self, name: &str) -> Option<&Archive> {
         self.archives
             .iter()
             .find(|a| a.name.eq_ignore_ascii_case(name))
+    }
+
+    /// The archive of that name in the language's folder (`Some`) or the shared one (`None`).
+    pub fn archive_in(&self, name: &str, language: Option<Language>) -> Option<&Archive> {
+        self.archives
+            .iter()
+            .find(|a| a.name.eq_ignore_ascii_case(name) && a.language == language)
     }
 
     /// A loose file of the CD (an archive's bytes as they are, the speech, the program).

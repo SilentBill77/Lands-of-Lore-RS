@@ -1,0 +1,16 @@
+[package]
+name = "lol-game"
+description = "Lands of Lore remake (Bevy): walk the levels in the original look"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[dependencies]
+lol-data.workspace = true
+lol-engine.workspace = true
+bevy = "0.20"
+image.workspace = true
+
+[lints]
+workspace = true

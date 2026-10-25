@@ -73,8 +73,8 @@ fn every_picture_figure_and_animation_reads() {
             }
         }
     }
-    // As many as the German copy holds.
-    assert_eq!(counts, [135, 119, 298, 13, 342]);
+    // As many as the German copy holds (its own archives and the shared ones).
+    assert_eq!(counts, [145, 138, 337, 13, 342]);
 }
 
 #[test]
