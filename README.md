@@ -177,6 +177,10 @@ look will live in `textures/`, named after the original files (`PLAYFLD.CPS.png`
 - The engine is a port of the Lands of Lore engine of **[ScummVM](https://www.scummvm.org/)**
   (the Kyra engine, GPL), whose developers reverse-engineered the original program. Without
   their work this project would not exist.
+- **Claude** (Anthropic's AI model, working in [Claude Code](https://claude.com/claude-code))
+  took a substantial part in the project: under the direction of the project's author it wrote
+  most of the code (the file readers, the port of the engine, the window and the sound), the
+  tools for testing and exporting, and the documentation, and it tested the game.
 
 ## License
 
