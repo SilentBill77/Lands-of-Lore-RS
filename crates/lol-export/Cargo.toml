@@ -1,0 +1,15 @@
+[package]
+name = "lol-export"
+description = "Exports the pictures, sounds and music of Lands of Lore as PNG and WAV files"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[dependencies]
+lol-data.workspace = true
+lol-sound.workspace = true
+image.workspace = true
+
+[lints]
+workspace = true

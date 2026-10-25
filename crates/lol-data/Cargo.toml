@@ -1,0 +1,13 @@
+[package]
+name = "lol-data"
+description = "Readers for the data files of Lands of Lore: The Throne of Chaos"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[dependencies]
+thiserror.workspace = true
+
+[lints]
+workspace = true

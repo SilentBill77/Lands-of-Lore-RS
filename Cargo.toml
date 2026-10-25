@@ -1,0 +1,26 @@
+[workspace]
+resolver = "3"
+members = ["crates/lol-data", "crates/lol-export", "crates/lol-sound"]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+license = "GPL-3.0-or-later"
+publish = false
+
+[workspace.lints.clippy]
+too_many_arguments = "allow"
+type_complexity = "allow"
+
+[workspace.dependencies]
+lol-data = { path = "crates/lol-data" }
+lol-sound = { path = "crates/lol-sound" }
+thiserror = "2"
+# Same version EOBRS uses (in the local registry); writes the PNG files.
+image = { version = "0.25", default-features = false, features = ["png"] }
+
+[profile.dev.package."*"]
+opt-level = 3
+
+[profile.dev]
+opt-level = 1

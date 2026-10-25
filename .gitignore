@@ -1,0 +1,28 @@
+/target
+/out
+/work
+*.pdb
+__pycache__/
+# Never commit the original game's data or anything made from it.
+/data
+/extract
+*.PAK
+*.pak
+*.TLK
+*.CPS
+*.SHP
+*.WSA
+*.ADL
+*.VOC
+*.DAT
+*.ISO
+*.iso
+# Large assets made for the modern look (models, textures, music).
+/models
+/textures
+/music
+# The player's settings and saved games.
+/einstellungen.txt
+/saves
+# Reference sources (ScummVM, GPL), not ours to commit.
+/ref
