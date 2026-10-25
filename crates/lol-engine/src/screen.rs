@@ -1,3 +1,14 @@
+// Lands-of-Lore-RS, a fan-made engine for Lands of Lore: The Throne of Chaos.
+// Copyright (C) 2026 The Lands-of-Lore-RS authors.
+// Ported from ScummVM's Kyra engine, Copyright (C) The ScummVM Team (www.scummvm.org).
+//
+// This program is free software: you can redistribute it and/or modify it under the terms of
+// the GNU General Public License as published by the Free Software Foundation, either version 3
+// of the License, or (at your option) any later version. It is distributed WITHOUT ANY
+// WARRANTY; see the GNU General Public License (the file LICENSE) for details.
+//
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 //! The screen as the original drives it (ScummVM's `Screen`, `Screen_v2`, `Screen_LoL`): 16
 //! pages of 320×200 (in VGA mode two page numbers share one buffer: 0/1, 2/3 …), page 0 being
 //! what the monitor shows after `update_screen`; windows (`ScreenDim`) to draw into; four

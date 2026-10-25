@@ -1,3 +1,15 @@
+// Lands-of-Lore-RS, a fan-made engine for Lands of Lore: The Throne of Chaos.
+// Copyright (C) 2026 The Lands-of-Lore-RS authors.
+// Ported from ScummVM's copy of MAME's fmopl by Tatsuyuki Satoh (taken from AdPlug, LGPL),
+// used here under the terms of the GPL as the LGPL allows.
+//
+// This program is free software: you can redistribute it and/or modify it under the terms of
+// the GNU General Public License as published by the Free Software Foundation, either version 3
+// of the License, or (at your option) any later version. It is distributed WITHOUT ANY
+// WARRANTY; see the GNU General Public License (the file LICENSE) for details.
+//
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 //! An emulated Yamaha YM3812 (OPL2), the chip on the AdLib card: nine channels of two
 //! operators each, or six and a rhythm section. A port of ScummVM's copy of MAME's `fmopl`
 //! (V0.37a, by Tatsuyuki Satoh, through AdPlug; LGPL), with its fix for the way Westwood's

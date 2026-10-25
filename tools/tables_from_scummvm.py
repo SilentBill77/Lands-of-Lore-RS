@@ -1,3 +1,7 @@
+# Lands-of-Lore-RS, a fan-made engine for Lands of Lore: The Throne of Chaos.
+# Copyright (C) 2026 The Lands-of-Lore-RS authors.
+# SPDX-License-Identifier: GPL-3.0-or-later
+
 """Writes crates/lol-data/src/tables.rs from ScummVM's create_kyradat resources.
 
 The tables the original program (LANDS.EXE of the CD version) holds -- where the view puts
@@ -148,6 +152,17 @@ def main():
     root = sys.argv[1] if len(sys.argv) > 1 else "ref/scummvm"
     source = os.path.join(root, SOURCE)
     out = [
+        "// Lands-of-Lore-RS, a fan-made engine for Lands of Lore: The Throne of Chaos.",
+        "// Copyright (C) 2026 The Lands-of-Lore-RS authors.",
+        "// Ported from ScummVM's Kyra engine, Copyright (C) The ScummVM Team (www.scummvm.org).",
+        "//",
+        "// This program is free software: you can redistribute it and/or modify it under the terms of",
+        "// the GNU General Public License as published by the Free Software Foundation, either version 3",
+        "// of the License, or (at your option) any later version. It is distributed WITHOUT ANY",
+        "// WARRANTY; see the GNU General Public License (the file LICENSE) for details.",
+        "//",
+        "// SPDX-License-Identifier: GPL-3.0-or-later",
+        "",
         "//! Tables of the original program (`LANDS.EXE`, CD version), from ScummVM's",
         "//! `devtools/create_kyradat/resources/lol_dos_cd*.h` (GPL). Written by",
         "//! `tools/tables_from_scummvm.py`; do not edit by hand.",

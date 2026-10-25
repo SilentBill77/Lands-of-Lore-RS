@@ -1,3 +1,13 @@
+// Lands-of-Lore-RS, a fan-made engine for Lands of Lore: The Throne of Chaos.
+// Copyright (C) 2026 The Lands-of-Lore-RS authors.
+//
+// This program is free software: you can redistribute it and/or modify it under the terms of
+// the GNU General Public License as published by the Free Software Foundation, either version 3
+// of the License, or (at your option) any later version. It is distributed WITHOUT ANY
+// WARRANTY; see the GNU General Public License (the file LICENSE) for details.
+//
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 //! Writing the music and sounds of the AdLib card out as WAV files (16 bit, mono, 44.1 kHz),
 //! played by Westwood's driver (version 4) on the emulated OPL2: into `musik/` (pieces: music
 //! repeating or playing longer than `PIECE` seconds) and `musik/klaenge/` (sound effects), one
