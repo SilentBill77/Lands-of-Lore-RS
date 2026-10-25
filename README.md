@@ -147,28 +147,6 @@ More tools:
 | `--example paklist ARCHIVE` | List the files in a PAK archive |
 | `--example fuzz SEED MS [OUT]` | Play with random input to find crashes and hangs |
 
-## Exporting the game's assets
-
-```powershell
-cargo run --release -p lol-export -- alles
-```
-
-This writes everything from your installation to `extract/` (about 1.3 GB). Single parts:
-`liste` (list files), `info [de|en|fr]`, `skript FILE` (what a script needs from the game),
-`bilder` (pictures), `klaenge` (sounds), `musik` (music), `ansichten` (views of every level);
-an output folder can be given as the second argument.
-
-- `bilder/`: pictures, sprites (as sheets and single frames), animations, wall blocks and
-  palettes; `bilder/en` and `bilder/fr` only hold what differs from the German version.
-- `klaenge/`: the sound effects and the voices of the intro.
-- `sprache/00` … `sprache/29`: the speech.
-- `musik/`: the AdLib music.
-- `ansichten/`: the whole screen of every level from a few places.
-- `uebersicht.html`: everything on one page, with play buttons.
-
-The exported files are the original game's assets. They are for your own use and are never
-part of this repository; do not distribute them. Replacement graphics for the planned modern
-look will live in `textures/`, named after the original files (`PLAYFLD.CPS.png`).
 
 ## Credits
 
