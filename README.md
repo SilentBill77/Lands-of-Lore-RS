@@ -1,7 +1,7 @@
 # Lands-of-Lore-RS
 
 A fan-made reimplementation of the engine of **Lands of Lore: The Throne of Chaos**
-(Westwood Studios, 1993), written in Rust for Windows 11.
+(Westwood Studios, 1993), written in Rust.
 
 Lands-of-Lore-RS lets you play the original game on a modern PC without DOSBox: it reads
 the data files of your own copy of the game and runs them with a new engine that behaves like
