@@ -1,4 +1,4 @@
-# Lands-of-Lore-RS
+# Lands of Lore RS
 
 A fan-made reimplementation of the engine of **Lands of Lore: The Throne of Chaos**
 (Westwood Studios, 1993), written in Rust.
